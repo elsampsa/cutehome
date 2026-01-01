@@ -1,0 +1,5 @@
+PLAN.md
+*.code-workspace
+api-docs.yaml
+tmp.*
+settings.local.json

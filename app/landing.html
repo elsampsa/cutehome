@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Home Page</title>
+    <link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../lib/include/bootstrap-icons/css/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../lib/include/fontawesome/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        code, pre {
+            font-family: var(--font-mono);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, .1);
+            width: 250px;
+            background-color: var(--bs-body-bg);
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 100%;
+                padding: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Markdown content styling */
+        .container img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Center images on wide screens, but limit width */
+        @media (min-width: 768px) {
+            .container img {
+                max-width: 600px;
+            }
+        }
+
+        /* Style the paragraph that contains an image */
+        .container p:has(> img) {
+            text-align: center;
+        }
+
+        /* Caption styling */
+        .container .image-caption {
+            display: block;
+            text-align: center;
+            font-style: italic;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div id="sidebar" class="col-12 col-md-auto"></div>
+            <div id="main-content" class="col-12 col-md-9 col-lg-10"></div>
+        </div>
+    </div>
+
+    <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/include/marked/js/marked.min.js"></script>
+
+    <script type="module">
+        import { SidebarMenu } from '../lib/base/sidebarwidget.js';
+        import { ContainerWidget } from '../lib/base/containerwidget.js';
+        import { StateWidget } from '../lib/base/statewidget.js';
+        import { MarkdownSection } from './lib/sections/markdownsection.js';
+        import { SiteRouter } from './lib/siterouter.js';
+
+        // 1. Create all widgets explicitly (only for pages, not folders)
+        const aboutMeSection = new MarkdownSection(null);
+        aboutMeSection.setMarkdownFile('./content/aboutme.md');
+        aboutMeSection.setLogLevel(-1);
+
+        const openSourceSection = new MarkdownSection(null);
+        openSourceSection.setMarkdownFile('./content/opensource.md');
+        openSourceSection.setLogLevel(-1);
+
+        // 2. Define site structure with explicit widget references
+        const siteConfig = {
+            defaultSection: "about-me",  // Navigate here on page load
+            sections: [
+                {
+                    id: "about-me",
+                    label: "About Me",
+                    icon: "fas fa-user",
+                    widget: aboutMeSection  // Leaf node - has content
+                },
+                /* // subfolders like this:
+                {
+                    id: "opensource",
+                    label: "OpenSource",
+                    icon: "fas fa-code-branch",
+                    // NO widget - this is a folder node
+                    sections: [
+                        {
+                            id: "cutefront",
+                            label: "CuteFront",
+                            widget: cuteFrontSection  // Leaf node - has content
+                        }
+                    ]
+                }
+                */
+                {
+                    id: "opensource",
+                    label: "OS Projects",
+                    icon: "fas fa-code-branch",
+                    widget: openSourceSection
+                },
+
+            ]
+        };
+
+        // 3. Create sidebar and container
+        const sidebar = new SidebarMenu("sidebar");
+        sidebar.setLogLevel(-1);
+
+        const container = new ContainerWidget("main-content");
+        container.setLogLevel(-1);
+
+        // 4. Create router and let it handle everything
+        const router = new SiteRouter(siteConfig, sidebar, container);
+        router.setLogLevel(-1);
+
+        // 5. Enable URL-based navigation with StateWidget
+        router.setSerializationKey("section");  // Creates URLs like ?section=about-me
+        const stateWidget = new StateWidget();
+        stateWidget.setLogLevel(-1);
+        stateWidget.register(router);  // Register router for state management
+
+        window.genDocs = ["sidebar", "container", "router", "stateWidget"];
+    </script>
+</body>
+</html>
