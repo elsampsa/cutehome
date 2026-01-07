@@ -1,5 +1,5 @@
-import { Widget, Signal } from '../../../lib/base/widget.js';
-import { MarkedWidget } from '../../../lib/render/marked.js';
+import { Widget, Signal } from '../../lib/base/widget.js';
+import { MarkedWidget } from '../../lib/render/marked.js';
 
 class MarkdownSection extends Widget { /*//DOC
     Generic section widget that renders markdown content from a file.

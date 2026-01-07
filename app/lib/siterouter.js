@@ -17,8 +17,7 @@ class SiteRouter extends Widget { /*//DOC
         this.sectionsMap = {}; // Flat map: { sectionId: Widget }
         this.sidebarItems = {}; // Hierarchical: { sectionId: SidebarMenuItem }
         this.currentSection = null; // Track current section to avoid redundant navigation
-        this.serializationKey = null; // For StateWidget integration
-        this.serializationWrite = true; // Create browser history entries by default
+        this.restoringState = false; // Flag: true when restoring from browser back/forward
         this.init();
     }
 
@@ -209,7 +208,7 @@ class SiteRouter extends Widget { /*//DOC
         */
         // Prevent redundant navigation to the same section
         if (this.currentSection === sectionId) {
-            this.log(-1, "Already at:", sectionId);
+            this.log(-1, "Already at:", sectionId, "- skipping navigation");
             return;
         }
 
@@ -220,7 +219,7 @@ class SiteRouter extends Widget { /*//DOC
             return;
         }
 
-        this.log(-1, "Navigating to:", sectionId);
+        this.log(-1, "Navigating to:", sectionId, "(restoringState:", this.restoringState + ")");
         this.currentSection = sectionId;
 
         // Show section in container
@@ -236,37 +235,14 @@ class SiteRouter extends Widget { /*//DOC
     }
 
     // State serialization methods for StateWidget integration
-    setSerializationKey(key) { /*//DOC
-        Set the URL parameter key for state serialization.
-        Example: setSerializationKey("section") creates URLs like ?section=about-me
-        @param {string} key - The URL parameter name
-        @returns {SiteRouter} this for method chaining
-        */
-        this.serializationKey = key;
-        return this;
-    }
+    // Note: setSerializationKey() and setSerializationWrite() are inherited from Widget base class
 
-    setSerializationWrite(write) { /*//DOC
-        Set whether navigation should create browser history entries.
-        @param {boolean} write - true to create history entries, false to only update URL
-        @returns {SiteRouter} this for method chaining
+    getSerializationValue() { /*//DOC
+        Returns the current section ID as serialized state.
+        Called by Widget.getState() which is used by StateWidget.
+        @returns {string} The current section ID, or default section, or empty string
         */
-        this.serializationWrite = write;
-        return this;
-    }
-
-    getState() { /*//DOC
-        Get current state for StateWidget.
-        @returns {Object|null} { serializationKey, serializationValue, write } or null if not configured
-        */
-        if (!this.serializationKey) {
-            return null;
-        }
-        return {
-            serializationKey: this.serializationKey,
-            serializationValue: this.currentSection || this.config.defaultSection || "",
-            write: this.serializationWrite
-        };
+        return this.currentSection || this.config.defaultSection || "";
     }
 
     setState(value) { /*//DOC
@@ -276,22 +252,28 @@ class SiteRouter extends Widget { /*//DOC
         */
         if (value && this.sectionsMap[value]) {
             this.log(-1, "setState: navigating to", value);
+            // Set flag to prevent serialize() from being called
+            // This avoids creating new history entries during state restoration
+            this.restoringState = true;
             this.navigateViaSidebar(value);
+            this.restoringState = false;
         }
     }
 
     serialize() { /*//DOC
         Emit state change signal for StateWidget.
         Called internally after navigation.
+        Uses Widget.getState() which calls our getSerializationValue().
         */
-        if (!this.serializationKey || !this.currentSection) {
+        // Don't emit state change when restoring from browser history
+        if (this.restoringState) {
+            this.log(-1, "serialize: skipping (restoring state)");
             return;
         }
-        this.signals.state_change.emit({
-            serializationKey: this.serializationKey,
-            serializationValue: this.currentSection,
-            write: this.serializationWrite
-        });
+        const state = this.getState();
+        if (state) {
+            this.signals.state_change.emit(state);
+        }
     }
 
     getPath(sectionId) { /*//DOC

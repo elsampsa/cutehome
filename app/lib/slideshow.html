@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideShow Widget Test</title>
+    <link rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>SlideShow Widget Test</h1>
+    <p>Swipe, click arrows, use keyboard, or click dots to navigate.</p>
+
+    <div id="slideshow"></div>
+
+    <script src="../../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { SlideShowWidget } from './slideshow.js';
+
+        const slideshow = new SlideShowWidget('slideshow');
+        slideshow.setLogLevel(-1);
+
+        slideshow.setSlides([
+            {
+                src: 'https://picsum.photos/800/500?random=1',
+                caption: 'Random photo 1',
+                alt: 'Random landscape 1'
+            },
+            {
+                src: 'https://picsum.photos/800/500?random=2',
+                caption: 'Random photo 2',
+                alt: 'Random landscape 2'
+            },
+            {
+                src: 'https://picsum.photos/800/500?random=3',
+                caption: 'Random photo 3',
+                alt: 'Random landscape 3'
+            },
+            {
+                src: 'https://picsum.photos/800/500?random=4',
+                alt: 'Random landscape 4 (no caption)'
+            },
+            {
+                src: 'https://picsum.photos/800/500?random=5',
+                caption: 'Random photo 5',
+                alt: 'Random landscape 5'
+            }
+        ]);
+    </script>
+</body>
+</html>

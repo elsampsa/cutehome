@@ -106,7 +106,8 @@
         import { SidebarMenu } from '../lib/base/sidebarwidget.js';
         import { ContainerWidget } from '../lib/base/containerwidget.js';
         import { StateWidget } from '../lib/base/statewidget.js';
-        import { MarkdownSection } from './lib/sections/markdownsection.js';
+        import { MarkdownSection } from './lib/markdownsection.js';
+        import { SlideShowWidget } from './lib/slideshow.js';
         import { SiteRouter } from './lib/siterouter.js';
 
         // 1. Create all widgets explicitly (only for pages, not folders)
@@ -117,6 +118,30 @@
         const openSourceSection = new MarkdownSection(null);
         openSourceSection.setMarkdownFile('./content/opensource.md');
         openSourceSection.setLogLevel(-1);
+
+        const linksSection = new MarkdownSection(null);
+        linksSection.setMarkdownFile('./content/links.md');
+        linksSection.setLogLevel(-1);
+
+        const photosSection = new SlideShowWidget(null);
+        photosSection.setLogLevel(-1);
+        photosSection.setSlides([
+            {
+                src: './content/eka.png',
+                caption: 'First photo',
+                alt: 'Photo 1'
+            },
+            {
+                src: './content/eka.png',
+                caption: 'Second photo',
+                alt: 'Photo 2'
+            },
+            {
+                src: './content/eka.png',
+                caption: 'Third photo',
+                alt: 'Photo 3'
+            }
+        ]);
 
         // 2. Define site structure with explicit widget references
         const siteConfig = {
@@ -149,7 +174,18 @@
                     icon: "fas fa-code-branch",
                     widget: openSourceSection
                 },
-
+                {
+                    id: "photos",
+                    label: "Photos",
+                    icon: "fas fa-camera",
+                    widget: photosSection
+                },
+                {
+                    id: "links",
+                    label: "Links",
+                    icon: "fas fa-link",
+                    widget: linksSection
+                },
             ]
         };
 
@@ -166,6 +202,7 @@
 
         // 5. Enable URL-based navigation with StateWidget
         router.setSerializationKey("section");  // Creates URLs like ?section=about-me
+        router.setSerializationWrite(true);     // Enable writing to browser history
         const stateWidget = new StateWidget();
         stateWidget.setLogLevel(-1);
         stateWidget.register(router);  // Register router for state management
