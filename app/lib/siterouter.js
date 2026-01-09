@@ -17,7 +17,7 @@ class SiteRouter extends Widget { /*//DOC
         this.sectionsMap = {}; // Flat map: { sectionId: Widget }
         this.sidebarItems = {}; // Hierarchical: { sectionId: SidebarMenuItem }
         this.currentSection = null; // Track current section to avoid redundant navigation
-        this.restoringState = false; // Flag: true when restoring from browser back/forward
+        this.serialize_ = true;
         this.init();
     }
 
@@ -207,7 +207,8 @@ class SiteRouter extends Widget { /*//DOC
         @param {string} sectionId - The ID of the section to navigate to
         */
         // Prevent redundant navigation to the same section
-        if (this.currentSection === sectionId) {
+        // But log it so we can see if it's happening
+        if (this.currentSection === sectionId && !this.restoringState) {
             this.log(-1, "Already at:", sectionId, "- skipping navigation");
             return;
         }
@@ -231,7 +232,9 @@ class SiteRouter extends Widget { /*//DOC
         }
 
         // Emit state change for URL serialization (if StateWidget is registered)
-        this.serialize();
+        if (this.serialize_) {
+            this.serialize();
+        }
     }
 
     // State serialization methods for StateWidget integration
@@ -250,30 +253,14 @@ class SiteRouter extends Widget { /*//DOC
         Called by StateWidget when URL changes (e.g., browser back/forward).
         @param {string} value - The section ID to navigate to
         */
+        this.serialize_ = false;
         if (value && this.sectionsMap[value]) {
             this.log(-1, "setState: navigating to", value);
             // Set flag to prevent serialize() from being called
             // This avoids creating new history entries during state restoration
-            this.restoringState = true;
             this.navigateViaSidebar(value);
-            this.restoringState = false;
         }
-    }
-
-    serialize() { /*//DOC
-        Emit state change signal for StateWidget.
-        Called internally after navigation.
-        Uses Widget.getState() which calls our getSerializationValue().
-        */
-        // Don't emit state change when restoring from browser history
-        if (this.restoringState) {
-            this.log(-1, "serialize: skipping (restoring state)");
-            return;
-        }
-        const state = this.getState();
-        if (state) {
-            this.signals.state_change.emit(state);
-        }
+        this.serialize_ = true;
     }
 
     getPath(sectionId) { /*//DOC

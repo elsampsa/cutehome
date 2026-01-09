@@ -46,4 +46,4 @@ send me a message at linkedin.
 
 ---
 
-*This page was built with [CuteFront](https://elsampsa.github.io/cutefront/_build/html/index.html) - a pure JavaScript framework*
+*This page was built with [CuteHome](https://github.com/elsampsa/cutehome) - a pure JavaScript-frontend-only content manager*

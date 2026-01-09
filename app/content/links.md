@@ -5,9 +5,10 @@
 - [Youtube](https://www.youtube.com/@sampsariikonen1732)
 - [Medium](https://medium.com/@sampsa.riikonen)
 
-## My shortcuts 
+<!-- ## My shortcuts 
 
-*so I don't need to remember them*
+*so I don't need to remember them* -->
+
 
 
 
