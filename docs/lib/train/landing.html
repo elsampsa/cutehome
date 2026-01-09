@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authentication App</title>
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="../lib/include/bootstrap-icons/css/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Container for all auth widgets -->
+<div id="auth-container"></div>
+
+<div id="network-sim"></div>
+<div id="loading-indicator"></div>
+
+<!-- Test panel - will be populated only in development mode -->
+<div id="test-panel" style="margin-top: 2rem; padding: 1rem; border-top: 2px solid #ccc;"></div>
+
+</body>
+<script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Global CuteFront configuration - available to all widgets
+    window.CuteFrontPath = {
+        static: './static',
+        assets: './assets',
+        images: './static'
+    };
+</script>
+<script type="module">
+
+// Testing utilities - centralized test mode and parameter management
+import { TestingUrlManager } from '../lib/base/testingutils.js';
+const testManager = new TestingUrlManager(window);
+const isTestMode = testManager.isTestMode();
+const useMockDataSources = testManager.useMockDataSources();
+const networkTest = testManager.getNetworkTestFlag();
+const useTestPanel = testManager.getTestPanelFlag();
+
+// Theme widget - instantiate early to prevent flash
+import { ThemeWidget } from '../lib/base/themewidget.js';
+const themeWidget = new ThemeWidget();
+
+import { ContainerWidget } from '../lib/base/containerwidget.js';
+import { LoginWidget } from './landing/login.js';
+import { ForgotPasswordWidget } from './landing/forgotpassword.js';
+import { SignupWidget } from './landing/signup.js';
+import { AuthUserHTTPDataSource, AuthUserMockDataSource } from './datapi/authuser/datasource.js'
+import { AuthUserDataSourceWidget } from './datapi/authuser/datawidget.js'
+import { LocalStorageAuthModel } from '../lib/base/authmodel.js';
+import { BannerWidget } from './lib/banner.js';
+import { LoadingIndicatorWidget } from '../lib/base/loadingindicatorwidget.js';
+import { StateWidget } from '../lib/base/statewidget.js';
+
+const bannerWidget = new BannerWidget();
+
+// datasources and auth
+// NOTE: AuthUserMockDataSource is not using datamodel
+if (useMockDataSources) {
+    // file:/// protocol - uses mock datasources for standalone testing
+    var authUserDataSource = new AuthUserMockDataSource();
+    bannerWidget.ok_slot("Using mock data sources (file:// mode)");
+    console.log("using MOCK datasource (file:// protocol)")
+}
+else {
+    // Shared auth model for all datasources
+    var authModel = new LocalStorageAuthModel("access_token");
+
+    // Auto-detect environment and configure base URL
+    let baseUrl;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Second tier: python http.server -> docker backend on port 8000
+        baseUrl = 'http://localhost:8000/api/v1';
+    } else {
+        // Third tier: everything in docker / production - use relative URL (goes through Traefik)
+        baseUrl = '/api/v1';
+    }
+
+    var authUserDataSource = new AuthUserHTTPDataSource()
+        .setBaseUrl(baseUrl)
+        .setAuthModel(authModel)
+}
+
+const authUserDataSourceWidget = new AuthUserDataSourceWidget('auth-user-datasource-widget', authUserDataSource);
+
+// Create the container
+const container = new ContainerWidget("auth-container");
+container.setLogLevel(-1); // debugging
+
+const logoPath = `${window.CuteFrontPath.static}/fastapi-logo.svg`;
+
+// Create all widgets
+const loginWidget = new LoginWidget(null).setLogo(logoPath)
+const forgotPasswordWidget = new ForgotPasswordWidget(null).setLogo(logoPath)
+const signupWidget = new SignupWidget(null).setLogo(logoPath)
+// Place widgets into container
+container.setItems({
+    login: loginWidget,
+    forgotPassword: forgotPasswordWidget,
+    signup: signupWidget
+});
+
+const loadingIndicator = new LoadingIndicatorWidget('loading-indicator');
+loadingIndicator.setLogLevel(-1);
+
+if (networkTest) {
+    const { NetworkSimulatorWidget } = await import('../lib/base/networksimulatorwidget.js');
+    // Create network simulator widget (floating panel in bottom-right)
+    const networkSimWidget = new NetworkSimulatorWidget('network-sim');
+    networkSimWidget.setLogLevel(-1);
+    // Wire network simulator to all datasource widgets
+    networkSimWidget.signals.simulator_changed.connect(
+        (sim) => authUserDataSourceWidget.set_network_simulator_slot(sim)
+    );
+}
+
+// Connect navigation signals between widgets
+// From Login widget
+loginWidget.signals.forgot_password.connect(() => {
+    container.show_slot(forgotPasswordWidget);
+});
+loginWidget.signals.sign_up.connect(() => {
+    container.show_slot(signupWidget);
+});
+// From Forgot Password widget
+forgotPasswordWidget.signals.back_to_login.connect(() => {
+    container.show_slot(loginWidget);
+});
+// From Signup widget
+signupWidget.signals.back_to_login.connect(() => {
+    container.show_slot(loginWidget);
+});
+
+// Succesfull signup or forgot password always leads back to sign in page
+authUserDataSourceWidget.signals.success.connect(() => {
+    container.show_slot(loginWidget);
+});
+
+// Handle actual authentication intents -> data to datasource
+loginWidget.signals.login.connect((credentials) => {
+    console.log("Login attempt:", credentials);
+    authUserDataSourceWidget.signIn_slot(credentials)
+});
+forgotPasswordWidget.signals.send_recovery.connect((credentials) => {
+    console.log("Password recovery requested:", credentials);
+    authUserDataSourceWidget.forgotPassword_slot(credentials)
+
+});
+signupWidget.signals.sign_up.connect((userData) => {
+    authUserDataSourceWidget.signUp_slot(userData);
+});
+
+// success/failure signals from signup, forgot password or signin
+authUserDataSourceWidget.signals.message.connect((message) => {
+    bannerWidget.ok_slot(message)
+});
+authUserDataSourceWidget.signals.error.connect((message) => {
+    bannerWidget.error_slot(message)
+});
+// succesfull sign in!
+authUserDataSourceWidget.signals.signIn_success.connect((data) => {
+    console.log("signin success with", data);
+    localStorage.setItem("access_token", data.access_token);
+    // Preserve only testing parameters and prevent back navigation
+    const params = testManager.getTestingParams();
+    window.location.replace("layout.html" + params);
+});
+
+// data operations un/block UI
+authUserDataSourceWidget.signals.loading_start.connect(
+    (op) => loadingIndicator.loading_start_slot(op)
+);
+authUserDataSourceWidget.signals.loading_success.connect(
+    (op) => loadingIndicator.loading_success_slot(op)
+);
+authUserDataSourceWidget.signals.loading_error.connect(
+    (data) => loadingIndicator.loading_error_slot(data)
+);
+
+// Configure state management for browser navigation
+container.setSerializationKey("page").setSerializationWrite(true);
+const stateWidget = new StateWidget();
+stateWidget.setLogLevel(-1); // debugging
+stateWidget.register(container);
+
+// Show login widget by default (will be overridden by URL state if present)
+// Note: container.show_slot() is already called by StateWidget.register() via setStates()
+// so we only call it if there's no URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+if (!urlParams.has('page')) {
+    container.show_slot(loginWidget);
+}
+
+window.genDocs = ["authUserDataSourceWidget", "container", "stateWidget"]
+
+// ============================================================================
+// TEST MODE - Activate debug features
+// ============================================================================
+
+if (isTestMode) {
+    console.log("🧪 Test mode enabled - activating debug features");
+    container.activate_debug_slot();
+}
+
+// ============================================================================
+// TEST PANEL - Only active when test-panel parameter is set
+// ============================================================================
+
+if (useTestPanel) {
+    console.log("🧪 Test panel enabled - injecting test panel");
+
+    const testPanel = document.getElementById('test-panel');
+    testPanel.innerHTML = `
+        <button id="test-panel-toggle" class="btn btn-sm btn-outline-secondary">
+            Show Test Panel
+        </button>
+        <div id="test-panel-content" style="display: none;">
+            <h3>🧪 Test Panel (Development Mode Only)</h3>
+            <p style="color: #666; font-size: 0.9em;">
+                These buttons test signal/slot connections by emitting signals directly.
+                Individual widgets are tested in their own HTML files.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                <button id="test-login-success" class="btn btn-success">
+                    ✓ Test Successful Login
+                </button>
+                <button id="test-login-fail" class="btn btn-danger">
+                    ✗ Test Failed Login
+                </button>
+                <button id="test-forgot-success" class="btn btn-success">
+                    ✓ Test Forgot Password (Success)
+                </button>
+                <button id="test-forgot-fail" class="btn btn-danger">
+                    ✗ Test Forgot Password (Not Found)
+                </button>
+                <button id="test-signup-success" class="btn btn-success">
+                    ✓ Test Signup (Success)
+                </button>
+                <button id="test-signup-fail" class="btn btn-danger">
+                    ✗ Test Signup (Email Exists)
+                </button>
+                <button id="test-me" class="btn btn-info">
+                    ℹ Test Get Current User
+                </button>
+            </div>
+            <div id="test-results" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; font-family: monospace; font-size: 0.85em;">
+                Test results will appear here...
+            </div>
+        </div>
+    `;
+
+    const testPanelContent = document.getElementById('test-panel-content');
+    const testPanelToggle = document.getElementById('test-panel-toggle');
+    const testResults = document.getElementById('test-results');
+
+    // Toggle collapse/expand
+    testPanelToggle.onclick = () => {
+        if (testPanelContent.style.display === 'none') {
+            testPanelContent.style.display = '';
+            testPanelToggle.textContent = 'Hide Test Panel';
+        } else {
+            testPanelContent.style.display = 'none';
+            testPanelToggle.textContent = 'Show Test Panel';
+        }
+    };
+
+    // Helper to display test results
+    function showResult(message, isError = false) {
+        const timestamp = new Date().toLocaleTimeString();
+        const color = isError ? '#dc3545' : '#28a745';
+        testResults.innerHTML = `<span style="color: ${color}">[${timestamp}] ${message}</span>`;
+    }
+
+    // Listen to datasource widget signals for test feedback
+    authUserDataSourceWidget.signals.message.connect((data) => {
+        console.log("✓ Success response:", data);
+        showResult(`✓ Success: ${JSON.stringify(data, null, 2)}`);
+    });
+
+    authUserDataSourceWidget.signals.error.connect((error) => {
+        console.log("✗ Error response:", error);
+        showResult(`✗ Error: ${error.message}\nData: ${JSON.stringify(error.data, null, 2)}`, true);
+    });
+
+    // Test button handlers - emit signals directly to test the connections
+
+    document.getElementById('test-login-success').onclick = () => {
+        showResult("Testing successful login...");
+        container.show_slot(loginWidget);
+        setTimeout(() => {
+            loginWidget.signals.login.emit({
+                username: "admin@example.com",
+                password: "changethis"
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-login-fail').onclick = () => {
+        showResult("Testing failed login...");
+        container.show_slot(loginWidget);
+        setTimeout(() => {
+            loginWidget.signals.login.emit({
+                username: "wrong@example.com",
+                password: "wrongpassword"
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-forgot-success').onclick = () => {
+        showResult("Testing password recovery (success)...");
+        container.show_slot(forgotPasswordWidget);
+        setTimeout(() => {
+            forgotPasswordWidget.signals.send_recovery.emit({
+                email: "admin@example.com"
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-forgot-fail').onclick = () => {
+        showResult("Testing password recovery (not found)...");
+        container.show_slot(forgotPasswordWidget);
+        setTimeout(() => {
+            forgotPasswordWidget.signals.send_recovery.emit({
+                email: "unknown@example.com"
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-signup-success').onclick = () => {
+        showResult("Testing signup (success)...");
+        container.show_slot(signupWidget);
+        setTimeout(() => {
+            signupWidget.signals.sign_up.emit({
+                username: `newuser${Math.floor(Math.random() * 9999)}`,
+                email: `newuser${Math.floor(Math.random() * 9999)}@example.com`,
+                password: `password123`
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-signup-fail').onclick = () => {
+        showResult("Testing signup (email exists)...");
+        container.show_slot(signupWidget);
+        setTimeout(() => {
+            signupWidget.signals.sign_up.emit({
+                username: "admin",
+                email: "admin@example.com",
+                password: "password123"
+            });
+        }, 150);
+    };
+
+    document.getElementById('test-me').onclick = () => {
+        showResult("Testing get current user...");
+        authUserDataSourceWidget.me_slot();
+    };
+
+    // Pre-fill login form for convenience during development
+    loginWidget.test_input_slot("admin@example.com", "changethis");
+}
+
+</script>
+</html>
