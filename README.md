@@ -2,7 +2,7 @@
 
 This is CuteHome - your modular content manager / homepage engine.
 
-It looks like [this](www.iki.fi/sampsa.riikonen)
+It looks like [this](https://elsampsa.github.io/cutehome)
 
 It's frontend-only (no backends, databases and whatnots) and is built using [CuteFront](https://elsampsa.github.io/cutefront/_build/html/index.html) - the pure Javascript frontend framework.
 
