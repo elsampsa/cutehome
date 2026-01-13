@@ -11,7 +11,7 @@ as a senior AI engineer.  But wait, Silo was acquired, so in fact, now I am "Sen
 is filled with debugging AMD's ROCm software stack 🎉, Pytorch and such.
 
 In my previous life, I used to play scientist (I have a Ph. D. in Physics from a Spanish University).  Before that I did my master's in physics
-in Finland's Aalto University a loong time a go (around 2003 if I remember correctly).
+in Finland's Aalto University a loong time a go (around 2003 if I remember correctly).  For more about that, see the [Academic](nav:science) section.
 
 I belong to a class of software developers who have a severe compulsive-obsessive disorder: if I see messy/bad organized code, I just can't help
 myself - I feel an obligation to clean it up, sort it out, organize and document it.  This can be both an advantage and a handicap.

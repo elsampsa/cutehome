@@ -49,6 +49,8 @@ class SlideShowWidget extends Widget { /*//DOC
     constructor(id = null) {
         super(id);
         this.slides = [];  // Array of { src: string, caption?: string, alt?: string }
+        this.simulate_slow_download = false;  // For testing loading states
+        this.download_delay_ms = 2000;  // Default delay in milliseconds
         this.createElement();
         this.createState();
     }
@@ -89,6 +91,18 @@ class SlideShowWidget extends Widget { /*//DOC
 
     // ========== CONFIGURATION METHODS ==========
 
+    simulateSlowDownload(delay_ms = 2000) { /*//DOC
+        Enable slow download simulation for testing loading states.
+        This adds an artificial delay before images are shown, allowing you to see
+        the loading spinner and fade-in animation.
+        :param delay_ms: Delay in milliseconds (default: 2000ms = 2 seconds)
+        Returns this for method chaining
+        */
+        this.simulate_slow_download = true;
+        this.download_delay_ms = delay_ms;
+        return this;
+    }
+
     setSlides(slides) { /*//DOC
         Set the slides to display.
         This triggers a full re-render of the carousel.
@@ -118,7 +132,7 @@ class SlideShowWidget extends Widget { /*//DOC
         // Create carousel structure
         // Bootstrap expects: .carousel > .carousel-inner > .carousel-item
         this.element.innerHTML = `
-            <div class="slideshow-container">
+            <div class="slideshow-container mt-4">
                 <div id="${this.id}-carousel" class="carousel slide">
                     <div class="carousel-inner"></div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#${this.id}-carousel" data-bs-slide="prev">
@@ -180,6 +194,33 @@ class SlideShowWidget extends Widget { /*//DOC
             /* Image container - centers the image */
             .slideshow-container .carousel-inner {
                 background-color: transparent;
+                min-height: 400px;
+                position: relative;
+            }
+
+            /* Loading spinner - show before image loads */
+            .slideshow-container .carousel-item::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 50px;
+                height: 50px;
+                margin: -25px 0 0 -25px;
+                border: 4px solid rgba(255, 255, 255, 0.1);
+                border-top-color: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                animation: slideshow-spinner 0.8s linear infinite;
+            }
+
+            /* Hide spinner when image is loaded */
+            .slideshow-container .carousel-item.image-loaded::before {
+                display: none;
+            }
+
+            @keyframes slideshow-spinner {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
 
             /* Limit image height and center, no black background */
@@ -190,6 +231,13 @@ class SlideShowWidget extends Widget { /*//DOC
                 height: auto;
                 object-fit: contain;
                 margin: 0 auto;
+                opacity: 0;
+                transition: opacity 0.3s ease-in;
+            }
+
+            /* Fade in when image is fully loaded */
+            .slideshow-container .carousel-inner img.loaded {
+                opacity: 1;
             }
 
             /* Indicators - moved below image, larger touch targets */
@@ -295,10 +343,24 @@ class SlideShowWidget extends Widget { /*//DOC
             }
 
             const img = document.createElement('img');
-            img.src = slide.src;
             img.classList.add('d-block', 'w-100');
             img.alt = slide.alt || `Slide ${index + 1}`;
             img.loading = 'lazy';  // Browser defers loading until image is near viewport
+
+            // Fade in when image is fully loaded
+            img.onload = () => {
+                const showImage = () => {
+                    img.classList.add('loaded');
+                    item.classList.add('image-loaded');  // Hide the spinner
+                };
+
+                // Simulate slow download if enabled
+                if (this.simulate_slow_download) {
+                    setTimeout(showImage, this.download_delay_ms);
+                } else {
+                    showImage();
+                }
+            };
 
             // Error handling for images
             img.onerror = () => {
@@ -310,6 +372,9 @@ class SlideShowWidget extends Widget { /*//DOC
                 placeholder.innerHTML = '<p class="text-muted">Image not found</p>';
                 img.replaceWith(placeholder);
             };
+
+            // Set src after setting up handlers (important for cached images)
+            img.src = slide.src;
 
             item.appendChild(img);
 
