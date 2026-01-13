@@ -11,8 +11,8 @@ Hack as you wish, remove my personal stuff, put in place yours instead and just 
 ## Features
 
 - Write markdown `.md` files only
-- You can cross-reference/hyperlink your md file
-- Add personal photos
+- You can cross-reference/hyperlink your md files
+- A photo gallery
 - Create a hierarchical directory structure with sections, subsections, etc.
 - Mobile friendly
 
