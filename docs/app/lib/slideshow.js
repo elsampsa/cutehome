@@ -182,6 +182,13 @@ class SlideShowWidget extends Widget { /*//DOC
                 height: 3rem;
             }
 
+            /* Image container - centers the image */
+            .slideshow-container .carousel-inner {
+                background-color: transparent;
+                min-height: 400px;
+                position: relative;
+            }
+
             /* Mobile-specific adjustments */
             @media (max-width: 767px) {
                 .slideshow-container .carousel-control-prev-icon,
@@ -189,13 +196,16 @@ class SlideShowWidget extends Widget { /*//DOC
                     width: 2rem;
                     height: 2rem;
                 }
-            }
 
-            /* Image container - centers the image */
-            .slideshow-container .carousel-inner {
-                background-color: transparent;
-                min-height: 400px;
-                position: relative;
+                /* Reduce min-height on mobile to eliminate empty space */
+                .slideshow-container .carousel-inner {
+                    min-height: 200px;
+                }
+
+                /* Reduce max image height on mobile */
+                .slideshow-container .carousel-inner img {
+                    max-height: 400px;
+                }
             }
 
             /* Loading spinner - show before image loads */

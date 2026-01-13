@@ -20,6 +20,24 @@
             font-family: var(--font-body);
             font-weight: 400;
             line-height: 1.6;
+            position: relative;
+        }
+
+        /* Blurred background image */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('./content/photos/donosti.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(10px);
+            opacity: 0.15;
+            z-index: -1;
         }
 
         code, pre {
@@ -36,18 +54,28 @@
             overflow-y: scroll;  /* Always show scrollbar space */
         }
 
-        .sidebar {
+        #sidebar {
             padding: 48px 0 0;
             box-shadow: inset -1px 0 0 rgba(255, 255, 255, .1);
         }
 
-        .main-content {
+        #main-content {
             padding: 2rem;
+        }
+
+        /* Desktop: sticky sidebar that floats in place */
+        @media (min-width: 768px) {
+            #sidebar {
+                position: sticky;
+                top: 0;
+                max-height: 100vh;
+                overflow-y: auto;
+            }
         }
 
         /* Mobile adjustments */
         @media (max-width: 767px) {
-            .sidebar {
+            #sidebar {
                 padding: 0;
             }
         }
@@ -106,19 +134,19 @@
 
         // 1. Create all widgets explicitly (only for pages, not folders)
         const aboutMeSection = new MarkdownSection(null);
-        aboutMeSection.setMarkdownFile('./content/aboutme.md');
+        aboutMeSection.setMarkdownFile('./content/about-me/aboutme.md');
         aboutMeSection.setLogLevel(-1);
 
         const openSourceSection = new MarkdownSection(null);
-        openSourceSection.setMarkdownFile('./content/opensource.md');
+        openSourceSection.setMarkdownFile('./content/opensource/opensource.md');
         openSourceSection.setLogLevel(-1);
 
         const scienceSection = new MarkdownSection(null);
-        scienceSection.setMarkdownFile('./content/science.md');
+        scienceSection.setMarkdownFile('./content/science/science.md');
         scienceSection.setLogLevel(-1);
 
         const linksSection = new MarkdownSection(null);
-        linksSection.setMarkdownFile('./content/links.md');
+        linksSection.setMarkdownFile('./content/links/links.md');
         linksSection.setLogLevel(-1);
 
         const photosSection = new SlideShowWidget(null);
@@ -126,82 +154,82 @@
         photosSection.setLogLevel(-1);
         photosSection.setSlides([
             {
-                src: './content/me_istanbul06.jpg',
+                src: './content/photos/me_istanbul06.jpg',
                 caption: 'Me in 2006',
                 alt: 'Photo 1'
             },
             {
-                src: './content/me_eva_istanbul06.jpg',
+                src: './content/photos/me_eva_istanbul06.jpg',
                 caption: 'Me and my future wife in 2006',
                 alt: 'Photo 2'
             },
             {
-                src: './content/av_navarra06.jpg',
+                src: './content/photos/av_navarra06.jpg',
                 caption: 'The Avenida de Navarra 30 shared flat in 2006',
                 alt: 'Photo 2'
             },
             {
-                src: './content/pasajes16.jpg',
+                src: './content/photos/pasajes16.jpg',
                 caption: 'Climbing in Basque Country in 2016',
                 alt: 'Photo 3'
             },
             {
-                src: './content/donosti2.jpg',
+                src: './content/photos/donosti2.jpg',
                 caption: 'San Sebastián',
                 alt: 'Photo 3'
             },
             {
-                src: './content/kids17.jpg',
+                src: './content/photos/kids17.jpg',
                 caption: 'Kids in 2017',
                 alt: 'Photo 3'
             },
             {
-                src: './content/funland17.jpg',
+                src: './content/photos/funland17.jpg',
                 caption: 'Funland in 2017',
                 alt: 'Photo 3'
             },
             {
-                src: './content/vuosaari21.jpg',
+                src: './content/photos/vuosaari21.jpg',
                 caption: 'Our natural habitat in 2021',
                 alt: 'Photo 4'
             },
             {
-                src: './content/boat_21.jpg',
+                src: './content/photos/boat_21.jpg',
                 caption: 'Pandemic year fun',
                 alt: 'Photo 5'
             },
             {
-                src: './content/chiquis21.jpg',
+                src: './content/photos/chiquis21.jpg',
                 caption: 'Kids in 2021',
                 alt: 'Photo 6'
             },
             {
-                src: './content/artikutxa.jpg',
+                src: './content/photos/artikutxa.jpg',
                 caption: 'Somewhere in the Basque Country in 2024',
                 alt: 'Photo 7'
             },
             {
-                src: './content/in_andorra.jpg',
+                src: './content/photos/in_andorra.jpg',
                 caption: 'Life in Andorra',
                 alt: 'Photo 8'
             },
             {
-                src: './content/junclar23.jpg',
+                src: './content/photos/junclar23.jpg',
                 caption: 'Somewhere in Andorra in 2023',
                 alt: 'Photo 9'
             },
             {
-                src: './content/climb_nacho_andorra24.jpg',
+                src: './content/photos/climb_nacho_andorra24.jpg',
                 caption: 'Andorra fun in 2024',
                 alt: 'Photo 9'
             },
             {
-                src: './content/san_silvestre24.jpg',
+                src: './content/photos/san_silvestre24.jpg',
                 caption: 'San Silvestre popular race in 2024 with Iñaki',
                 alt: 'Photo 10'
             },
             {
-                src: './content/oudie.jpg',
+                src: './content/photos/oudie.jpg',
                 caption: 'Oudie',
                 alt: 'Photo 11'
             }

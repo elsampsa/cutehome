@@ -2,7 +2,7 @@
 
 The name is Sampsa Riikonen. I am a (proud) father of two and the patriarch of a finnish-basque family, currently living in Helsinki, Finland. 🇫🇮
 
-![Looking for uncomfortable situations](./content/eka.png)
+![Looking for uncomfortable situations](./content/about-me/eka.png)
 
 ## Work
 
@@ -37,7 +37,7 @@ determination of my father.  Nowadays I also sing.  My highly sought-after perfo
 of family and friends.  Alcohol 🍸 is usually involved.
 
 Yet another thing I enjoy is making ingenious & revolutionary OpenSource projects that would benefit humanity and make things
-much more efficient, but which nobody uses.  So it's a typical nerd thing.  Please do check out the section about my OpenSource projects.
+much more efficient, but which nobody uses.  So it's a typical nerd thing.  Please do check out the section about my [OpenSource projects](nav:opensource).
 
 They say I speak fluent spanish - *pero yo no puedo opinar sobre eso*.
 

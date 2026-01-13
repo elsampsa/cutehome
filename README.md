@@ -27,9 +27,13 @@ Hack as you wish, remove my personal stuff, put in place yours instead and just 
 - Edit [app/landing.html](app/landing.html).  That's about it.  The code is so obvious that no documentation is needed :)
 - If you want to visualize your work-in-progress, choose as an active file [app/landing.html](app/landing.html) and launch a debug session with the target `Cutefront HTML file://`.
 
-To copy stuff from `app/` -> into `docs/` and so that it deploys as a github page, run `deploy.sh`
+To deploy your version of the homepage, do this:
+```bash
+ deploy.sh # removes docs/, then copies app/ -> docs/
+ git add docs
+ ```
 
-After that you still need to commit `docs/`, push into github and in github web UI activate the github page.
+After that you still need to push into github and in github web UI activate the github page.
 
 ## Copyright
 
