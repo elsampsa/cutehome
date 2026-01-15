@@ -20,7 +20,7 @@ In fact, there was no available library (and there still isn't!) that would've c
 Sure, you have libav and friends (ffmpeg), but it's a very low-level tool and doesn't touch issues such as multiprocessing/threading, frame
 queueing, synchronization, stream sharing, etc.
 
-So I had to write a library of my own for all that - please take a look at [libValkka](http://www.valkka.org).
+So I had to write a library of my own for all that - please take a look at <a href="http://valkka.org" target="_blank">libValkka</a>.
 
 What happened to that desktop streaming program?  We actually got it done!  It was installed in Finland, Germany, France and even in Dubai 🚀!
 
@@ -33,8 +33,8 @@ Video applications that need to share streams across processes, for live viewing
 In Python, one needs to use multi*processing* instead of threading and the former has several pitfalls and inconveniences.  However, they 
 can be overcome with a systematic approach.
 
-Please take a look at my [blog post](https://medium.com/@sampsa.riikonen/doing-python-multiprocessing-the-right-way-a54c1880e300) and then at 
-[valkka-multiprocess library](https://elsampsa.github.io/valkka-multiprocess/_build/html/index.html).
+Please take a look at my <a href="https://medium.com/@sampsa.riikonen/doing-python-multiprocessing-the-right-way-a54c1880e300" target="_blank">blog post</a> and then at
+<a href="https://elsampsa.github.io/valkka-multiprocess/_build/html/index.html" target="_blank">valkka-multiprocess library</a>.
 
 ## TaskThread 🧵
 
@@ -43,7 +43,7 @@ for up to thousand IP cameras.  The weapon of choice was python asyncio.
 
 I came up with a novel idea for organizing asyncio coroutines into re-scheduling tasks, giving a threading-like API.
 
-Well.. to understand what this means, you need to be knee-deep into python asyncio.  And then take a look at [TaskThread](https://elsampsa.github.io/task_thread/_build/html/index.html).
+Well.. to understand what this means, you need to be knee-deep into python asyncio.  And then take a look at <a href="https://elsampsa.github.io/task_thread/_build/html/index.html" target="_blank">TaskThread</a>.
 
 ## CuteFront 🎨
 
@@ -55,4 +55,4 @@ Modern JS frameworks are bloated monsters drawing increased criticism from devel
 my own framework, inspired by the Qt desktop UI framework.  More than a framework it is actually a way of organizing your frontend JS
 into clearly separated and testable components.
 
-Please take a look at it [here](https://elsampsa.github.io/cutefront/_build/html/index.html).
+Please take a look at it <a href="https://elsampsa.github.io/cutefront/_build/html/index.html" target="_blank">here</a>.
